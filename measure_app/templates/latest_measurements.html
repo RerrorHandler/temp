@@ -1,0 +1,114 @@
+{% load static %}
+{% block content %}
+<div class="container text-2xl">
+    <h2>Latest Measurements</h2>
+</div>
+<div class="container mt-5 bg">
+    <div class="MRT">
+        <div class="glass-card">
+            <div>
+                <div>MRI</div>
+                {% if MRT.temperature_MRT is not None %}
+                    <p class="display-4" id="temperature_MRT">t {{ MRT.temperature_MRT }} C</p>
+                {% else %}
+                    <p>No temperature data available</p>
+                {% endif %}
+                {% if MRT.humidity_MRT is not None %}
+                    <p class="display-4" id="humidity_MRT">ϕ {{ MRT.humidity_MRT }} %</p>
+                {% else %}
+                    <p>No humidity data available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="Resident">
+        <div class="glass-card">
+            <div>
+                <div>Lobby</div>
+                {% if resident.temperature_resident is not None %}
+                    <p class="display-4" id="temperature_resident">t {{ resident.temperature_resident }} C</p>
+                {% else %}
+                    <p>No temperature data available</p>
+                {% endif %}
+            </div>
+            <div>
+                {% if resident.humidity_resident is not None %}
+                    <p class="display-4" id="humidity_resident">ϕ {{ resident.humidity_resident }} %</p>
+                {% else %}
+                    <p>No humidity data available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'home' %}" class="btn btn-primary">Back to Graphs</a>
+    </div>
+</div>
+<style>
+
+    .MRT {
+        position: absolute;
+        top: 320px;
+        left: 120px;
+    }
+
+    .Resident {
+        position: absolute;
+        top: 550px;
+        left: 320px;
+    }
+
+    .bg {
+        width: 1000px;
+        height: 1000px;
+        background-image: url('{% static 'images/bg.jpg' %}');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        padding: 2rem;
+        border-radius: 10px;
+    }
+    
+    .glass-card {
+        padding: 0.5rem;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 20px;
+    }
+    
+    .border-end {
+        border-right: 1px solid rgba(255, 255, 255, 0.3) !important;
+    }
+</style>
+
+<script>
+    function updateMeasurements() {
+        fetch('{% url "latest_measurements_data" %}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.temperature_MRT) {
+                    document.getElementById('temperature_MRT').textContent = 't ' + data.temperature_MRT + ' C';
+                    document.getElementById('temperature_MRT').style.color = data.temperature_MRT > 30 ? 'red' : 'green';
+                    // document.getElementById('temp_timestamp_MRT').textContent = 'Last updated: ' + data.temp_timestamp_MRT;
+                    document.getElementById('humidity_MRT').textContent = 'ϕ ' + data.humidity_MRT + ' %';
+                    document.getElementById('humidity_MRT').style.color =  (data.humidity_MRT > 20 && data.humidity_MRT < 80) ? "green" : "red";
+                    // document.getElementById('humidity_timestamp_MRT').textContent = 'Last updated: ' + data.humidity_timestamp_MRT;
+                }
+                if (data.temperature_resident !== null && data.humidity_resident !== null) {
+                    document.getElementById('temperature_resident').textContent = 't ' + data.temperature_resident + ' C';
+                    document.getElementById('temperature_resident').style.color = data.temperature_resident > 30 ? 'red' : 'green';
+                    document.getElementById('humidity_resident').textContent = 'ϕ ' + data.humidity_resident + ' %';
+                    document.getElementById('humidity_resident').style.color =  (data.humidity_resident > 20 && data.humidity_resident < 80) ? "green" : "red";
+                }
+            });
+    }
+    // Update every 5 seconds
+    setInterval(updateMeasurements, 5000);
+</script>
+
+{% endblock %} 

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Temperature and Humidity Chart</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Temperature and Humidity Chart</h1>
+    
+    <!-- Form for selecting date range -->
+    <form id="date_range_form">
+        <label for="start_date">Start Date and Time:</label>
+        <input type="datetime-local" id="start_date" name="start_date">
+
+        <label for="end_date">End Date and Time:</label>
+        <input type="datetime-local" id="end_date" name="end_date">
+
+        <button type="submit">Generate Chart</button>
+    </form>
+
+    <!-- Div for displaying temperature chart -->
+    <div id="temperature_chart"></div>
+
+    <!-- Div for displaying humidity chart -->
+    <div id="humidity_chart" style="margin-top: 50px;"></div>
+
+    <script>
+        document.getElementById('date_range_form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            fetchDataAndPlotCharts();
+        });
+
+        function fetchDataAndPlotCharts() {
+            const startDate = document.getElementById('start_date').value;
+            const endDate = document.getElementById('end_date').value;
+
+            fetchTemperatureData(startDate, endDate);
+            fetchHumidityData(startDate, endDate);
+        }
+
+        function fetchTemperatureData(startDate, endDate) {
+            fetch(`/api/temperature-data/?start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Plot temperature chart using Plotly.js
+                    const layout = {
+                        title: 'Temperature Data',
+                        xaxis: {
+                            title: 'Time',
+                            type: 'date'
+                        },
+                        yaxis: {
+                            title: 'Temperature',
+                        }
+                    };
+
+                    const chartData = [];
+                    data.temperature_data.forEach((board) => {
+                        chartData.push({
+                            name: board.board_name,
+                            x: board.timestamps,
+                            y: board.temperatures,
+                            mode: 'lines+markers',
+                        });
+                    });
+                    Plotly.newPlot('temperature_chart', chartData, layout);
+                });
+        }
+
+        function fetchHumidityData(startDate, endDate) {
+            fetch(`/api/humidity-data/?start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Plot humidity chart using Plotly.js
+                    const layout = {
+                        title: 'Humidity Data',
+                        xaxis: {
+                            title: 'Time',
+                            type: 'date'
+                        },
+                        yaxis: {
+                            title: 'Humidity',
+                        }
+                    };
+
+                    const chartData = [];
+                    data.humidity_data.forEach((board) => {
+                        chartData.push({
+                            name: board.board_name,
+                            x: board.timestamps,
+                            y: board.humidities,
+                            mode: 'lines+markers',
+                        });
+                    });
+                    Plotly.newPlot('humidity_chart', chartData, layout);
+                });
+        }
+    </script>
+</body>
+</html>
